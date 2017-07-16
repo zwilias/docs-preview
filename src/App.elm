@@ -9,8 +9,8 @@ import Docs.Module as M
         , Tipe
         , Value
         )
-import Html exposing (Html, a, div, h1, pre, text)
-import Html.Attributes exposing (class, href)
+import Html exposing (Html, a, div, h1, pre, span, text)
+import Html.Attributes exposing (class, href, id)
 import Http
 import Json.Decode exposing (Decoder)
 import Markdown
@@ -98,7 +98,7 @@ view model =
 renderModule : Module -> Html msg
 renderModule { name, content } =
     div []
-        (h1 [ class "module-name" ] [ text name ] :: List.map (renderSection name) content)
+        (h1 [ id ("/" ++ String.toLower name), class "module-name" ] [ text name ] :: List.map (renderSection name) content)
 
 
 renderSection : String -> Section -> Html msg
@@ -115,29 +115,48 @@ renderBlock : String -> Block -> Html msg
 renderBlock m block =
     case block of
         AnAlias a ->
-            renderAlias m a
+            let
+                id =
+                    "/" ++ m ++ "/" ++ a.name |> String.toLower
+            in
+            renderAlias id a |> wrapblock id a.comment
 
         AType t ->
-            renderType m t
+            let
+                id =
+                    "/" ++ m ++ "/" ++ t.name |> String.toLower
+            in
+            renderType id t |> wrapblock id t.comment
 
         AValue v ->
-            renderValue m v
+            let
+                id =
+                    "/" ++ m ++ "/" ++ v.name |> String.toLower
+            in
+            renderValue id v |> wrapblock id v.comment
 
 
-renderAlias : String -> Alias -> Html msg
-renderAlias m { name, args, comment, tipe } =
+wrapblock : String -> String -> List (Html msg) -> Html msg
+wrapblock id_ comment content =
+    div [ class "docs-entry", id id_ ]
+        [ div [ class "docs-annotation" ] content
+        , Markdown.toHtml [] comment
+        ]
+
+
+renderAlias : String -> Alias -> List (Html msg)
+renderAlias id_ { name, args, comment, tipe } =
     [ text "type alias "
-    , text name
+    , a [ href ("#" ++ id_), class "export" ] [ text name ]
     , text " "
     , text (String.join " " args)
     , text " =\n"
     , text <| "    " ++ tipe
     ]
-        |> withComment comment
 
 
-renderType : String -> Tipe -> Html msg
-renderType m { name, args, comment, cases } =
+renderType : String -> Tipe -> List (Html msg)
+renderType id_ { name, args, comment, cases } =
     let
         tipe =
             case cases of
@@ -155,22 +174,17 @@ renderType m { name, args, comment, cases } =
                 _ ->
                     " " ++ String.join " " args
     in
-    [ text ("type " ++ name ++ arg ++ tipe) ]
-        |> withComment comment
+    [ text "type "
+    , a [ href ("#" ++ id_), class "export" ] [ text name ]
+    , text <| arg ++ tipe
+    ]
 
 
-renderValue : String -> Value -> Html msg
-renderValue m { name, comment, tipe } =
-    [ text (name ++ " : " ++ tipe) ]
-        |> withComment comment
-
-
-withComment : String -> List (Html msg) -> Html msg
-withComment comment html =
-    div [ class "docs-entry" ]
-        [ div [ class "docs-annotation" ] html
-        , Markdown.toHtml [] comment
-        ]
+renderValue : String -> Value -> List (Html msg)
+renderValue id_ { name, comment, tipe } =
+    [ a [ href ("#" ++ id_), class "export" ] [ text name ]
+    , text <| " : " ++ tipe
+    ]
 
 
 main : Program Never Model Msg

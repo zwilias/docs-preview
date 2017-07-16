@@ -32,3 +32,38 @@ h1 {
   padding-bottom: .5em;
   padding-top: .5em;
 }
+
+h2 {
+  font-size: 1.8em;
+}
+
+h3 {
+  font-size: 1.4em;
+}
+
+h4 {
+  font-size: 1.2em;
+}
+
+.export {
+  color: purple;
+  font-weight: bold;
+}
+
+a.export {
+  text-decoration: none;
+  display: inline-block;
+}
+
+a.export::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 1px;
+  background: purple;
+  transition: width .3s;
+}
+
+a.export:hover::after {
+  width: 100%;
+}
