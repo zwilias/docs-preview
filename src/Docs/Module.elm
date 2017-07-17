@@ -51,7 +51,7 @@ type alias Tipe =
     { name : String
     , comment : String
     , args : List String
-    , cases : List String
+    , cases : List ( String, List String )
     }
 
 
@@ -61,7 +61,14 @@ tipe =
         (JD.field "name" JD.string)
         (JD.field "comment" JD.string)
         (JD.field "args" (JD.list JD.string))
-        (JD.field "cases" (JD.list JD.string))
+        (JD.field "cases" (JD.list caseDecoder))
+
+
+caseDecoder : Decoder ( String, List String )
+caseDecoder =
+    JD.map2 (,)
+        (JD.index 0 JD.string)
+        (JD.index 1 (JD.list JD.string))
 
 
 type alias Value =

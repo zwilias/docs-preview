@@ -164,7 +164,7 @@ renderType id_ { name, args, comment, cases } =
                     ""
 
                 _ ->
-                    " = " ++ String.join " | " cases
+                    " = " ++ String.join " | " (List.map (\( x, xs ) -> x ++ " " ++ String.join " " xs) cases)
 
         arg =
             case args of
